@@ -1,0 +1,79 @@
+# ChangeLog
+
+## [0.6.11] - 2022-01-15 
+ - Fix incorrect string bounds definition for standard and GFXFonts in some cases
+ - Fix artefacts in Parallel Monochrome mode
+ - Add ability to choose timer for OE other than Tim3 (see Alternative Timer Setup in DMD_STM32a.h)
+
+## [0.6.9] - 2021-12-18 
+ - Get rid PGM warnings. 
+
+## [0.6.8] - 2021-12-05 
+ - More accurate timings for RGB panels. 
+ - New way of brightness control by synchro-PWM for OE signal in all RGB matrix modes.
+ 
+## [0.6.3] - 2021-07-18
+ - Add 1-bit RGB color depth
+ - Rewrite marquee text code
+ - Many other changes as ZigZag connect scheme etc
+
+## [0.5.1] - 2021-05-26
+ - Minor fix
+
+## [0.5.0] - 2021-05-18
+   New develop branch.
+ - New module structure with base class DMD_STM32a and child modules for
+   varius Monochrome and RGB panels
+ 
+## [0.4.3] - 2020-07-31
+ - Add dual buffering
+
+## [0.4.2] - 2020-06-16   <<<<<<< Stable version for Monochrome panels
+ - Fix stepMarquee() bug in inverse displays
+ 
+## [0.4.1] - 2019-10-23
+ - Minor fix, move all STM32 specific to conditional compolation
+
+## [0.4.0] - 2019-10-16
+ - Move all timer and interrupt settings to the library from user code
+ - Add static functions to register and scan multiple DMD instances
+ - This version still not support AVR MCs
+
+## [0.3.3] - 2019-10-14
+ - Add Async DMA Transfer (STM32)
+ - Add scanDisplaybyDMA, latchDMA and init() methods
+ - Remove SPI Transactions, change SPITransfer to SPI.write
+ - This version does not support AVR MCs
+
+## [0.3.2] - 2019-09-30
+ - Fix SPI clock settings (STM32)
+ - Add Sync DMA Transfer (STM32)
+
+## [0.2.2] - 2019-09-08
+ - Change Timer2_CH1 to Timer3_CH1 and then to Timer3_CH4 for stability (STM32)
+ - Add examples of vertical scrolling (STM32 & AVR)
+ - Many bug fixes
+
+## [0.2.1] - 2019-05-17
+ - Add vertical scrolling
+
+## [0.2.0] - 2019-05-15
+ - Add new fonts
+ - Add Atmega328 support
+ - Add inverseAll flag
+ - Add possibility of using second font object for same font for national charsets
+ - Add new DMD_Font class with support of Adafruit GFX font format
+ 
+ 
+## [0.1] - 2019-05-05
+
+### Initial release.
+    Based on DMDSTM code. The functionality corresponds to the original DMD library.
+	
+### Changed 
+   - Change constructor, move pins from #define to object data
+   
+### Added
+   - Example of using two DMD instanses simultaneously - double_dmd
+  
+
