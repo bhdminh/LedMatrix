@@ -51,7 +51,7 @@ uint8_t custom_rgbpins[] = { PB8, PB0,PB1,PB13,PB2,PB3,PB14 }; // CLK, R0, G0, B
 
 //Fire up the DMD object as dmd<MATRIX_TYPE, COLOR_DEPTH>
 // We use 64x32 matrix with 16 scans and 1bit color:
-DMD_RGB <RGB64x32plainS16, COLOR_1BITS> dmd(mux_list, DMD_PIN_nOE, DMD_PIN_SCLK, custom_rgbpins, DISPLAYS_ACROSS, DISPLAYS_DOWN, ENABLE_DUAL_BUFFER);
+DMD_RGB <RGB64x32plainS16, COLOR_4BITS> dmd(mux_list, DMD_PIN_nOE, DMD_PIN_SCLK, custom_rgbpins, DISPLAYS_ACROSS, DISPLAYS_DOWN, ENABLE_DUAL_BUFFER);
 // other options are:
 // <RGB32x16plainS8> -  32x16 matrix with 8scans
 // <RGB80x40plainS20> - 80x40 matrix with 20scans
@@ -114,10 +114,11 @@ void loop(void)
 
     };
     uint16_t bg = 0;  // background - black
-    int col_cnt = 3;   // color count
+    int col_cnt = 1;   // color count
 
     // text
     char s[] = "Hello World!";
+    char ss[] = "HHHHHHHHHHH";
     // transcode message to UTF for use with GFX fonts
     char k[30];
     
@@ -144,18 +145,63 @@ void loop(void)
 
     dmd.clearScreen(true);
 
+    for(i = 0; i < 10; i++) 
+    {
+        dmd.drawPixel(0, i, col[0]); 
+        dmd.drawPixel(dmd.width() - 1, i, col[0]); 
+        dmd.drawPixel(dmd.width() - 1, dmd.height() - 1 - i, col[0]); 
+    }
+
+    for(i = 0; i < 10; i++) 
+    {
+        dmd.drawPixel(i, 0, col[0]); 
+        dmd.drawPixel(dmd.width() - i, 0, col[0]); 
+        dmd.drawPixel(dmd.width() - 1 - i, dmd.height() - 1, col[0]); 
+    }
+
+    for(i = 0; i < 10; i++) 
+    {
+        dmd.drawPixel(i, i, col[0]); 
+        dmd.drawPixel(dmd.width() - 1 - i, i, col[0]); 
+        dmd.drawPixel(dmd.width() - 1 - i, dmd.height() - 1 - i, col[0]); 
+    }
+    dmd.swapBuffers(true);
+    delay(10000); 
+
+    dmd.drawString(0, 0, ss, dmd.stringWidth(ss), col[0]); 
+    dmd.swapBuffers(true);
+    delay(5000); 
+
+    dmd.clearScreen(true);
+    for(int j = 0; j < 10; j++) 
+    {
+        for(i = 0; i < dmd.width(); i++) 
+        {
+            dmd.drawPixel(i, j, col[0]); 
+            delay(30);
+        }
+    }
+    delay(3000); 
+    dmd.clearScreen(true);
+    dmd.swapBuffers(true);
+
     dmd.drawString(0, 1, s, dmd.stringWidth(s), col[0]); 
 
+    delay(3000); 
+    dmd.clearScreen(true);
+    dmd.swapBuffers(true);
     // Cycle for tests:
     // -- running texts moving at x and y axis with single and double speed
     // -- vertical scrolling message
+    prev_step = millis();
+    i = 0; 
     while (1) {
-#if 0
+#if 1
         if ((millis() - prev_step) > interval) {
             if (test >= test_cnt) {
                 test = 0;
                 // draw message
-                dmd.drawMarqueeX(m, -1 * (dmd.stringWidth(m)), 10);
+                dmd.drawMarqueeX(m, -1 * (dmd.stringWidth(m)), 2);
                 
                 dmd.swapBuffers(true);
                 
@@ -177,16 +223,16 @@ void loop(void)
                         // go to next stage
                         i = 0;
                         test++;
-                        dmd.drawMarqueeX(m, 0, 8);
+                        dmd.drawMarqueeX(m, 0, 2);
                     }
                     else {
-                        if (step[i] < 0) dmd.drawMarqueeX(m, dmd.width() - 1, 0);
-                        else dmd.drawMarqueeX(m, -1 * dmd.stringWidth(m), 0);
+                        if (step[i] < 0) dmd.drawMarqueeX(m, dmd.width() - 1, 2);
+                        else dmd.drawMarqueeX(m, -1 * dmd.stringWidth(m), 2);
                     }
                 }
                 else {
-
-                    if (step[i] != 1) dmd.drawFilledBox(0, 0, 5, dmd.height() - 1, GRAPHICS_INVERSE);
+                    // Scroll Full Screen
+                    // if (step[i] != 1) dmd.drawFilledBox(0, 0, 5, dmd.height() - 1, GRAPHICS_INVERSE);
                 }
                 // output mem buffer to matrix
                 dmd.swapBuffers(true);
@@ -216,8 +262,8 @@ void loop(void)
                         // go to next stage
                         test++;
                         // select GFX font for vertical scroll
-                        dmd.selectFont(&GlametrixL);
-                        dmd.drawMarquee(k, strlen(k), dmd.width() - 1, 8, 1);
+                        // dmd.selectFont(&GlametrixL);
+                        dmd.drawMarquee(k, strlen(k), dmd.width() - 1, 2, 1);
 
                     }
                     else {
@@ -232,7 +278,7 @@ void loop(void)
                 // vertical scrolling    
             case 3:
 
-                dmd.stepMarquee(-1, 0, 1);
+                dmd.stepMarquee(-1, 0, 0);
                 dmd.swapBuffers(true);
                 break;
 

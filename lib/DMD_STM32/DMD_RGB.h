@@ -25,6 +25,7 @@
 #define CLK_WITH_DATA   0x1
 #define CLK_AFTER_DATA   0
 
+#define FORCE_COLOR_INVERT		1 // Used for indoor p4.75 dual color
 //void inline __attribute__((always_inline)) scan_running_dmd_R();
 
 class DMD_RGB_BASE :
@@ -250,6 +251,9 @@ public:
 		uint8_t r, g, b, bit; // limit;
 		uint8_t* ptr;
 
+#if (FORCE_COLOR_INVERT)
+		color = color ^ 0xFFFF; 
+#endif
 		// special case color = 0
 		if (color == 0) {
 			cbytes[0] = 0; //cbytes[1] = 0; cbytes[2] = 0;
@@ -364,6 +368,9 @@ public:
 		}
 		if ((x < 0) || (x >= WIDTH) || (y < 0) || (y >= HEIGHT)) return;
 
+#if (FORCE_COLOR_INVERT)
+		c = c ^ 0xFFFF; 
+#endif
 		// transform X & Y for Rotate and connect scheme
 		transform_XY(x, y);
 		DEBUG_TIME_MARK;
@@ -420,6 +427,9 @@ public:
 		uint8_t r, g, b, bit, limit;
 		uint8_t* ptr;
 
+#if (FORCE_COLOR_INVERT)
+		color = color ^ 0xFFFF; 
+#endif
 		// special case color = 0
 		if (color == 0) {
 			cbytes[0] = 0; cbytes[1] = 0; cbytes[2] = 0;
@@ -558,6 +568,9 @@ public:
 		}
 		if ((x < 0) || (x >= WIDTH) || (y < 0) || (y >= HEIGHT)) return;
 
+#if (FORCE_COLOR_INVERT)
+		c = c ^ 0xFFFF; 
+#endif
 		// transform X & Y for Rotate and connect scheme
 		transform_XY(x, y);
 		DEBUG_TIME_MARK;

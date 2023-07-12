@@ -354,7 +354,11 @@ void DMD_RGB_BASE::clearScreen(byte bNormal) {
 }
 void DMD_RGB_BASE::shiftScreen(int8_t step) {
 	uint8_t* ptr = matrixbuff[backindex];
+#if (FORCE_COLOR_INVERT)
+	uint8_t mm = 0xFFFF;
+#else
 	uint8_t mm = 0;
+#endif
 	
 	if (step < 0) {
 
