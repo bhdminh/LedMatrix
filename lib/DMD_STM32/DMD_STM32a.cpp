@@ -327,6 +327,9 @@ uint8_t DMD::stepMarquee(int amountX, int amountY, byte orientation)
 	if ((marqueeOffsetX + marqueeWidth) == DMD_PIXELS_ACROSS * DisplaysWide) {
 		ret |= 4;
 	}
+	if (marqueeOffsetY == 2) {
+		ret |= 8;
+	}
     // Special case horizontal scrolling to improve speed
     if (amountY==0 && use_shift &&
 		  ((amountX==-1) || (amountX == 1))) {

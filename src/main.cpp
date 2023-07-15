@@ -6,6 +6,9 @@
 #include <Arduino.h>
 #include "DMD_RGB.h"
 
+#include "main.h"
+
+#if (CONFIG_APP_TEST_MODULE)
  // Fonts includes
 // #include "st_fonts/UkrRusArial14.h"
 // #pragma GCC diagnostic ignored "-Wnarrowing"
@@ -291,3 +294,4 @@ void loop(void)
     }
 }
 
+#endif // CONFIG_APP_TEST_MODULE
