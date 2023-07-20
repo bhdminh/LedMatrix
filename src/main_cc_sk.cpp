@@ -9,10 +9,14 @@
 #include "main.h"
 
 #if (CONFIG_APP_CC_SK)
+#include "converter.h"
  // Fonts includes
-#include "st_fonts/Arial14.h"
+#include "gfx_fonts/NotoSans_ExtraBold_VNI_7pt8b.h"
 #pragma GCC diagnostic warning "-Wnarrowing"
 #pragma GCC diagnostic warning "-Woverflow" 
+// #include "st_fonts/Arial14.h"
+// #pragma GCC diagnostic warning "-Wnarrowing"
+// #pragma GCC diagnostic warning "-Woverflow" 
 
 //Number of panels in x and y axis
 #define DISPLAYS_ACROSS 1
@@ -53,9 +57,11 @@ DMD_RGB <RGB64x32plainS16, COLOR_4BITS> dmd(mux_list, DMD_PIN_nOE, DMD_PIN_SCLK,
 // <RGB64x64plainS32> - 64x64 matrix with 32scans
 // Color depth - <COLOR_4BITS> or <COLOR_1BITS>
 
+viscii_t tt_tcvn[128]; 
 
 // --- Define fonts ----
-DMD_Standard_Font Arial_F(Arial_14);
+// DMD_Standard_Font Arial_F(Arial_14);
+DMD_GFX_Font NotoSansBold_F((uint8_t*)&NotoSans_ExtraBold_VNI_7pt8b, 0x0C);
 static void draw_scrolling_edge(void); 
 static void draw_scrolling_edge_3(void); 
 /*--------------------------------------------------------------------------------------
@@ -96,12 +102,13 @@ void setup(void)
 typedef enum {
     EFFECT_TEXT_STATIC, 
     EFFECT_TEXT_SCROLL_UP, 
+    EFFECT_TEXT_SCROLL_LEFT, 
     EFFECT_MAX, 
-}; 
+}EFFECT_TEXT; 
 
-#define EFFECT_STATIC_TIME      200 // 200*30 
+#define EFFECT_STATIC_TIME      150 // 200*30 
 #define EFFECT_TIME_STEP        30  // ms
-#if 1
+#if 0
 #define TOTAL_MSG           4
 char *msg[TOTAL_MSG] = 
 {
@@ -111,13 +118,26 @@ char *msg[TOTAL_MSG] =
     "GGG HHHH"
 };
 #else 
-#define TOTAL_MSG           4
+#define TOTAL_MSG           7
 char *msg[TOTAL_MSG] = 
 {
-    "CAT CHIA", 
-    "SUA KHOA", 
-    "LAY NGAY", 
+#if 1
+    "CẮT CHÌA", 
+    "SỬA KHÓA", 
+    "ĐỦ LOẠI",
+    "LẤY NGAY", 
+    "KHÓA ÔTô",
+    "REMOTE",
+    "MINH QUẢNG-0909073358"
+#else
+    "Cắt Chìa", 
+    "Sửa Khóa", 
+    "Đủ Loại",
+    "Lấy Ngay", 
+    "Khóa Ôtô",
+    "Khóa Két", 
     "0909073358"
+#endif
 };
 #endif
 uint16_t txt_color = dmd.Color888(255,0, 0); // red; 
@@ -127,7 +147,8 @@ void loop(void)
 
     // text
 
-    dmd.selectFont(&Arial_F);
+    // dmd.selectFont(&Arial_F);
+    dmd.selectFont(&NotoSansBold_F); 
     
     // set text foreground and background colors
     dmd.setTextColor(txt_color, bg);
@@ -140,12 +161,15 @@ void loop(void)
     uint16_t eff_state_cnt = EFFECT_STATIC_TIME; 
     uint16_t eff_state = 0; 
     uint8_t msg_cnt = 2; 
+    uint8_t msg_len = 0; 
+    int16_t start_offset = 0; 
     char *m = 0; 
     bool swap_buffer = 0; 
     dmd.setBrightness(200);
     
     dmd.clearScreen(true);
     dmd.swapBuffers(true);
+    dmd.setUseShift(false); 
     // Cycle for tests:
     // -- running texts moving at x and y axis with single and double speed
     // -- vertical scrolling message
@@ -165,8 +189,19 @@ void loop(void)
                 // draw message
                 m = msg[msg_cnt]; 
                 
+                msg_len = utf8_to_viscii(m, strlen(m), tt_tcvn, 128); 
+                tt_tcvn[msg_len] = 0x0; 
+                m = tt_tcvn; 
+                start_offset = dmd.width() - dmd.stringWidth(m);
+                if(start_offset < 0) start_offset = 0; 
+                start_offset = start_offset >> 1; 
                 dmd.clearScreen(true);
-                dmd.drawString(1, 2, m, dmd.stringWidth(m), txt_color); 
+                if(msg_cnt == TOTAL_MSG - 1) {
+                    eff_state = EFFECT_TEXT_SCROLL_LEFT; 
+                    dmd.drawMarqueeX(m, dmd.width(), 1);
+                } else {
+                    dmd.drawString(start_offset + 1, 1, m, msg_len, txt_color); 
+                }
                 // dmd.swapBuffers(true);
                 swap_buffer = 1; 
             }
@@ -176,14 +211,26 @@ void loop(void)
             case EFFECT_TEXT_STATIC:
                 eff_state_cnt--; 
                 if(eff_state_cnt == 0) {
-                    eff_state++; 
                     // dmd.clearScreen(true);
-                    if(msg_cnt + 1 >= TOTAL_MSG) {
+                    if(msg_cnt >= TOTAL_MSG) {
                         m = msg[0]; 
                     }else {
                         m = msg[msg_cnt + 1]; 
                     }
-                    dmd.drawMarqueeX(m, 1, dmd.height());
+                    msg_len = utf8_to_viscii(m, strlen(m), tt_tcvn, 128); 
+                    tt_tcvn[msg_len] = 0x0; 
+                    m = tt_tcvn; 
+                    start_offset = dmd.width() - dmd.stringWidth(m);
+                    if(start_offset < 0) start_offset = 0; 
+                    // Align Text Center
+                    start_offset = start_offset >> 1; 
+                    if(msg_cnt + 1 == TOTAL_MSG - 1) {
+                        eff_state = EFFECT_TEXT_SCROLL_LEFT; 
+                        dmd.drawMarqueeX(m, dmd.width(), 1);
+                    }else {
+                        eff_state++; 
+                        dmd.drawMarqueeX(m, start_offset + 1, dmd.height());
+                    }
                     // output mem buffer to matrix
                     // dmd.swapBuffers(true);
                     swap_buffer = 1; 
@@ -192,6 +239,16 @@ void loop(void)
                 // moving text at y axis
             case EFFECT_TEXT_SCROLL_UP:
                 if (dmd.stepMarquee(0, -1) & 8) {  // if text is reached screen bounds
+                    eff_state = EFFECT_MAX; 
+                    eff_state_cnt = EFFECT_STATIC_TIME; 
+                }
+                // output mem buffer to matrix
+                // dmd.swapBuffers(true);
+                swap_buffer = 1; 
+                break;
+            
+            case EFFECT_TEXT_SCROLL_LEFT:
+                if (dmd.stepMarquee(-1, 0) & 1) {  // if text is reached screen bounds
                     eff_state++; 
                     eff_state_cnt = EFFECT_STATIC_TIME; 
                 }
@@ -255,9 +312,9 @@ void conver_pos_offset_to_edge_pos(int16_t pos, int16_t *x, int16_t *y)
     // Postion / (width+height)== 0 => Postion / width <= 0 : (x = Postion, y = 0 ? (x = width - 1, y = Postion % width)
     //                         else 1 => Postion = Postion % (width + height); 
     
-    const int16_t totalWH = dmd.width() + dmd.height(); 
+    const int16_t totalWH = dmd.width() + dmd.height() / 2; 
     int16_t screenWidth = dmd.width(); 
-    int16_t screenHeigth = dmd.height(); 
+    int16_t screenHeigth = dmd.height() / 2; 
     if(pos / totalWH == 0) {
         if(pos / screenWidth == 0) {
             *x = pos; 

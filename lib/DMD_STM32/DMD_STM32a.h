@@ -170,6 +170,10 @@ class DMD : public Adafruit_GFX
   };
   virtual void setup_main_timer(uint32_t cycles, voidFuncPtr handler);
   
+  virtual void setUseShift(uint8_t shift) {
+	this->use_shift = shift; 
+  }
+
   virtual void drawHByte(int16_t x, int16_t y, uint8_t hbyte, uint8_t bsize, uint8_t* fg_col_bytes,
 	  uint8_t* bg_col_bytes) {};
   virtual void getColorBytes(uint8_t* cbytes, uint16_t color) {} ;
