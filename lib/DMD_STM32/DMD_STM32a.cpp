@@ -59,7 +59,12 @@ DMD::DMD(byte _pin_A, byte _pin_B, byte _pin_nOE, byte _pin_SCLK, byte panelsWid
 	oemask = digitalPinToBitMask(pin_DMD_nOE);
 
 #if defined(__STM32F1__)
+#ifdef STM32F1_ENABLE_BRIGHNESS_CTRL
 	pinMode(pin_DMD_nOE, PWM);  // setup the pin as PWM
+#else
+	pinMode(pin_DMD_nOE, OUTPUT);
+	digitalWrite(pin_DMD_nOE, HIGH);
+#endif
 #elif defined(__AVR_ATmega328P__)
 	pinMode(pin_DMD_nOE, OUTPUT);
 	digitalWrite(pin_DMD_nOE, LOW);
@@ -161,14 +166,24 @@ void DMD::switch_row() {
 
  #if defined(__STM32F1__)
     void DMD::OE_DMD_ROWS_OFF()    { //pinMode( pin_DMD_nOE, INPUT  ); 
+#ifdef STM32F1_ENABLE_BRIGHNESS_CTRL
 		*oe_CRL &= oe_mode_clrmask;
 		*oe_CRL |= oe_out_mode;
 		*oeport &= ~oemask;
+#else
+		// pinMode( pin_DMD_nOE, INPUT  ); 
+		digitalWrite( pin_DMD_nOE, LOW  );
+#endif
 	}
 	void DMD::OE_DMD_ROWS_ON()                 { //pinMode( pin_DMD_nOE, OUTPUT  ); 
+#ifdef STM32F1_ENABLE_BRIGHNESS_CTRL
 		*oe_CRL &= oe_mode_clrmask;
 		*oe_CRL |= oe_pwm_mode;
 		timer_set_compare(OE_TIMER, oe_channel, brightness);
+#else
+		// pinMode( pin_DMD_nOE, OUTPUT  ); 
+		digitalWrite( pin_DMD_nOE, HIGH ); 
+#endif
 	}
   #elif defined(__AVR_ATmega328P__)
     void DMD::OE_DMD_ROWS_OFF()                 { digitalWrite( pin_DMD_nOE, LOW  ); }

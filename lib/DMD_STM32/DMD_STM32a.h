@@ -90,6 +90,8 @@ typedef uint32_t PortType;
 // for alternative timers setup uncomment line below
 //#define ALTERNATIVE_DMD_TIMERS
 
+// Enable PWM Brighness control, only appy for stm32f1
+// #define STM32F1_ENABLE_BRIGHNESS_CTRL
 
 
 // OE PWM period in us

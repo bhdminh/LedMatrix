@@ -134,7 +134,7 @@ void  DMD_Monochrome_Parallel::scan_dmd() {
 #define pew                    \
       *dataclrreg = clk_clrmask;     \
       *datasetreg = ptr[cnt++] ;\
-      //*datasetreg = clkmask;
+      *datasetreg = clkmask;
 
 
 for (uint16_t uu = 0; uu < WIDTH; uu += 32)

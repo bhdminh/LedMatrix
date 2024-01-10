@@ -13,6 +13,14 @@ extern "C" {
 #define CONFIG_APP_TEST_MODULE  0
 #define CONFIG_APP_CC_SK        1
 
+#define LED_MODULE_INDOOR_P475_HUB08       0
+#define LED_MODULE_OUTDOOR_P10_HUB12        1
+
+#define LED_MODULE          LED_MODULE_OUTDOOR_P10_HUB12
+
+#if (LED_MODULE == LED_MODULE_INDOOR_P475_HUB08)
+#define LED_ENABLE_RGB_COLOR    1
+#endif
 
 #ifdef __cplusplus
 }

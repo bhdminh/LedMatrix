@@ -18,6 +18,7 @@
 // #pragma GCC diagnostic warning "-Wnarrowing"
 // #pragma GCC diagnostic warning "-Woverflow" 
 
+#if (LED_MODULE == LED_MODULE_INDOOR_P475_HUB08)
 //Number of panels in x and y axis
 #define DISPLAYS_ACROSS 1
 #define DISPLAYS_DOWN 1
@@ -56,6 +57,67 @@ DMD_RGB <RGB64x32plainS16, COLOR_4BITS> dmd(mux_list, DMD_PIN_nOE, DMD_PIN_SCLK,
 // <RGB80x40plainS20> - 80x40 matrix with 20scans
 // <RGB64x64plainS32> - 64x64 matrix with 32scans
 // Color depth - <COLOR_4BITS> or <COLOR_1BITS>
+#elif (LED_MODULE == LED_MODULE_OUTDOOR_P10_HUB12)
+// choose between Parallel ans SPI wiring
+// comment line below for SPI connection
+#define DMD_PARA
+
+#if defined(DMD_PARA)
+#include "DMD_Monochrome_Parallel.h"
+#else
+#include "DMD_MonoChrome_SPI.h"
+#endif
+
+//Number of panels in x and y axis
+#define DISPLAYS_ACROSS 2
+#define DISPLAYS_DOWN 1
+
+// Enable of output buffering
+// if true, changes only outputs to matrix after
+// swapBuffers(true) command
+// If dual buffer not enabled, all output draw at matrix directly
+// and swapBuffers(true) cimmand do nothing
+#define ENABLE_DUAL_BUFFER false
+
+// ----- Select pins for P10 matrix connection ------------
+// pins A, B, SCLK may be any digital I/O, pin nOE should be Timer3 PWM pin as PB0,PB1
+// if connect as SPI, do not use corresponding MiSO pin - PA6 for SPI1 and PB14 for SPI2
+#define DMD_PIN_A PB4
+#define DMD_PIN_B PB5
+
+// #define DMD_PIN_nOE PB1
+//#define DMD_PIN_nOE PA6
+#define DMD_PIN_nOE PB12
+// #define DMD_PIN_SCLK PA15
+//#define DMD_PIN_SCLK PB4
+#define DMD_PIN_SCLK PB9
+
+
+// pins for SPI connect
+// SPI specific pins as CLK and R_DATA has predefined values:
+//   for SPI(1) CLK = PA5  R_DATA = PA7
+//   for SPI(2) CLK = PB13  R_DATA = PB15
+// --------------------------------------------------------
+
+//=== Config for Parallel connect ====
+#if defined(DMD_PARA)
+//pins for rows at x axis
+// example for two rows
+// all those pins must be selected from same port!
+uint8_t pins[] = { PB8, PB0, PB2 };  // CLK , row1, row 2
+// uint8_t pins[] = { PB8, PB2, PB0 };  // CLK , row1, row 2
+
+//Fire up the DMD object as dmd
+DMD_Monochrome_Parallel dmd(DMD_PIN_A, DMD_PIN_B, DMD_PIN_nOE, DMD_PIN_SCLK, pins, DISPLAYS_ACROSS, DISPLAYS_DOWN,ENABLE_DUAL_BUFFER);
+#else
+
+//=== Config for SPI connect ====
+SPIClass dmd_spi(1);
+DMD_MonoChrome_SPI dmd(DMD_PIN_A, DMD_PIN_B, DMD_PIN_nOE, DMD_PIN_SCLK, DISPLAYS_ACROSS, DISPLAYS_DOWN, dmd_spi, ENABLE_DUAL_BUFFER);
+#endif
+#else
+#error "Must Define LED_MODULE"
+#endif
 
 viscii_t tt_tcvn[128]; 
 
@@ -140,7 +202,12 @@ char *msg[TOTAL_MSG] =
 #endif
 };
 #endif
-uint16_t txt_color = dmd.Color888(255,0, 0); // red; 
+#ifdef LED_ENABLE_RGB_COLOR
+uint16_t txt_color = dmd.Color888(255,0, 0); // red;
+#else 
+// uint16_t txt_color = 0xFFFF; // red;
+uint16_t txt_color = 0x1; // red;
+#endif
 void loop(void)
 {
     uint16_t bg = 0;  // background - black
@@ -149,10 +216,10 @@ void loop(void)
 
     // dmd.selectFont(&Arial_F);
     dmd.selectFont(&NotoSansBold_F); 
-    
+#ifdef LED_ENABLE_RGB_COLOR    
     // set text foreground and background colors
     dmd.setTextColor(txt_color, bg);
-
+#endif
     // running text shift interval
     uint16_t interval = EFFECT_TIME_STEP;
 
@@ -167,6 +234,46 @@ void loop(void)
     bool swap_buffer = 0; 
     dmd.setBrightness(200);
     
+    dmd.inverseAll(0); 
+    dmd.clearScreen(true);
+#if 0
+    for(int j = 0; j < 16; j++) 
+    {
+        for(i = 0; i < dmd.width(); i++) 
+        {
+            dmd.drawPixel(i, j, txt_color); 
+            delay(30);
+        }
+    }
+    delay(10000); 
+    dmd.clearScreen(true);
+    dmd.swapBuffers(true);
+
+    dmd.clearScreen(true);
+
+    for(i = 0; i < 10; i++) 
+    {
+        dmd.drawPixel(0, i, txt_color); 
+        dmd.drawPixel(dmd.width() - 1, i, txt_color); 
+        dmd.drawPixel(dmd.width() - 1, dmd.height() - 1 - i, txt_color); 
+    }
+
+    for(i = 0; i < 10; i++) 
+    {
+        dmd.drawPixel(i, 0, txt_color); 
+        dmd.drawPixel(dmd.width() - i, 0, txt_color); 
+        dmd.drawPixel(dmd.width() - 1 - i, dmd.height() - 1, txt_color); 
+    }
+
+    for(i = 0; i < 10; i++) 
+    {
+        dmd.drawPixel(i, i, txt_color); 
+        dmd.drawPixel(dmd.width() - 1 - i, i, txt_color); 
+        dmd.drawPixel(dmd.width() - 1 - i, dmd.height() - 1 - i, txt_color); 
+    }
+    dmd.swapBuffers(true);
+    delay(10000); 
+#endif
     dmd.clearScreen(true);
     dmd.swapBuffers(true);
     dmd.setUseShift(false); 
@@ -312,9 +419,9 @@ void conver_pos_offset_to_edge_pos(int16_t pos, int16_t *x, int16_t *y)
     // Postion / (width+height)== 0 => Postion / width <= 0 : (x = Postion, y = 0 ? (x = width - 1, y = Postion % width)
     //                         else 1 => Postion = Postion % (width + height); 
     
-    const int16_t totalWH = dmd.width() + dmd.height() / 2; 
+    const int16_t totalWH = dmd.width() + dmd.height(); 
     int16_t screenWidth = dmd.width(); 
-    int16_t screenHeigth = dmd.height() / 2; 
+    int16_t screenHeigth = dmd.height(); 
     if(pos / totalWH == 0) {
         if(pos / screenWidth == 0) {
             *x = pos; 
@@ -341,7 +448,7 @@ static void draw_scrolling_edge_3(void) {
     static int16_t pos_offset = 0; 
 
     dmd.drawFastHLine(0, 0, dmd.width(), 0); 
-    dmd.drawFastHLine(0, dmd.height() / 2 - 1, dmd.width(), 0); 
+    dmd.drawFastHLine(0, dmd.height() - 1, dmd.width(), 0); 
     dmd.drawFastVLine(0, 0, dmd.height(), 0); 
     dmd.drawFastVLine(dmd.width() - 1, 0, dmd.height(), 0); 
     int16_t totalWH = dmd.width() + dmd.height(); 
